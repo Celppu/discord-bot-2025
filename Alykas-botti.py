@@ -62,40 +62,6 @@ def replace_usernames_with_mentions_fuzzy(text):
             text = text.replace(f'@{username}', f'<@{user.id}>')
     return text
 
-def query_llm(chat_history):
-    global LLM_MODEL, MODEL_URL
-    payload = {
-        "model": LLM_MODEL,
-        "messages": [{"role": "system", "content": "Always answer in 2020 tiktok brain rot."}] + [
-            {"role": "user" if "User" in msg else "assistant", "content": msg.split(':', 1)[1].strip()}
-            for msg in chat_history.split('\n') if msg.strip()
-        ],
-        "temperature": 0.7,
-        "max_tokens": 500,
-        "stream": True
-    }
-    
-    # Debug print query payload
-    print(json.dumps(payload, indent=4))
-    
-    try:
-        response = requests.post(MODEL_URL, headers={"Content-Type": "application/json"}, data=json.dumps(payload), stream=True)
-        response.raise_for_status()
-        
-        outtext = ""
-        for line in response.iter_lines(decode_unicode=True):
-            if line and line != "data: [DONE]":
-                try:
-                    data = json.loads(line[6:])
-                    token = data.get("choices", [{}])[0].get("delta", {}).get("content", "")
-                    if token:
-                        outtext += token
-                except json.JSONDecodeError:
-                    continue
-        return outtext
-    except requests.exceptions.RequestException as e:
-        return f"SYSTEM - An error occurred: {e}"
-
 def fix_double_encoded(text):
     try:
         fixed = text.encode('latin1', errors='ignore').decode('utf-8', errors='ignore')
@@ -106,7 +72,10 @@ def fix_double_encoded(text):
         return text
 
 def query_llm2(chat_history, botname, serverName, channelName):
-
+    global LLM_MODEL, MODEL_URL
+    
+    
+    # KT13 Editoi seuraavassa systeemi viestissä botin persoonaa
     systemMessage = f"""Always answer in 2020 tiktok brainrot. Assistants name is `{botname}`. This is a discord chat with multiple users. Assistant `{botname}` is creative and concise
     `{botname}` is real person and have opinions.
     `{botname}` does not show internal thoughts and only answer to chat with message content. Assistant DOES NOT ADD the [username] tag to the message content.
@@ -119,7 +88,7 @@ def query_llm2(chat_history, botname, serverName, channelName):
     [User]: I am fine, how are you?
     _ AND HERE DO NOT ADD THE [{botname}] TAG _ I am doing well, thank you for asking."""
     payload = {
-        "model": "skyfall-36b-v2",
+        "model": LLM_MODEL,
         "messages": [{"role": "system", "content": systemMessage}] + chat_history,
         "temperature": 0.7,
         "max_tokens": 500,
