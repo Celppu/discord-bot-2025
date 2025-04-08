@@ -13,6 +13,7 @@ load_dotenv()
 TOKEN = os.getenv('DISCORD_TOKEN')
 MODEL_URL = "http://127.0.0.1:1234/v1/chat/completions"
 
+# KT14 ?? Editoi tähän käyttämäsi tekoälymalli
 LLM_MODEL = "llama-3.2-1b-instruct"
 
 chathis = "This is a discord chat. Make short helpful answer, tag users using @username \n"
@@ -86,7 +87,7 @@ def query_llm2(chat_history, botname, serverName, channelName):
     Example:
     [{botname}]: Hi, how are you?
     [User]: I am fine, how are you?
-    _ AND HERE DO NOT ADD THE [{botname}] TAG _ I am doing well, thank you for asking."""
+    [{botname}]: I am doing well, thank you for asking."""
     payload = {
         "model": LLM_MODEL,
         "messages": [{"role": "system", "content": systemMessage}] + chat_history,
